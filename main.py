@@ -15,7 +15,8 @@ def About():
         "FullName": "Качилов Сергей Евгеньевич",
         "Group": "T-333901",
         "course": 3,
-        "university": "НТИ УРФУ"
+        "university": "НТИ УРФУ",
+        "GitHub": "https://github.com/SergeiKachilov"
     }
 
 @app.get("/rnd")
