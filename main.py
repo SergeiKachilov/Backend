@@ -19,8 +19,8 @@ def About():
     }
 
 @app.get("/rnd")
-def Rnd():
-    return {"rnd": random.randint(0, 1000)}
+def Rnd(min:int = Query(default=1), max:int=Query(default=100)):
+    return {"rnd": random.randint(min, max)}
 
 @app.post("/t_square")
 def T_Square(a:float = Query(gt=0), b:float = Query(gt=0), c:float = Query(gt=0)):
