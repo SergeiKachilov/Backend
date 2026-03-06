@@ -16,27 +16,27 @@ winCombinations = {
 
 @app.post("/rps")
 def RPS(userChoice:pyd.UserChoice):
-    if userChoice.choice not in choices:
+    if userChoice.choice.capitalize() not in choices:
         raise HTTPException(400, "Недопустимое значение")
     
     compChoice = random.choice(choices)
 
-    if userChoice.choice == compChoice:
+    if userChoice.choice.capitalize() == compChoice:
         return {
-            "user_choice":userChoice.choice,
+            "user_choice":userChoice.choice.capitalize(),
             "computer_choice":compChoice,
             "result": "Ничья"
         }
     
-    if winCombinations[userChoice.choice] == compChoice:
+    if winCombinations[userChoice.choice.capitalize()] == compChoice:
         return {
-            "user_choice":userChoice.choice,
+            "user_choice":userChoice.choice.capitalize(),
             "computer_choice":compChoice,
             "result": "Победа"
         }
     
     return {
-            "user_choice":userChoice.choice,
+            "user_choice":userChoice.choice.capitalize(),
             "computer_choice":compChoice,
             "result": "Поражение"
         }
