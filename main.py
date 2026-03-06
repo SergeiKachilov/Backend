@@ -1,64 +1,42 @@
-from fastapi import FastAPI, Path, Query
+from fastapi import FastAPI, HTTPException
 from enum import Enum
+
 import random
-from math import sqrt
+import pyd
 
 app = FastAPI()
 
-class Units(str, Enum):
-    celsius = "celsius"
-    fahrenheit = "fahrenheit"
+choices = ["Камень", "Ножницы", "Бумага"]
 
-@app.get("/about")
-def About():
-    return {
-        "FullName": "Качилов Сергей Евгеньевич",
-        "Group": "T-333901",
-        "course": 3,
-        "university": "НТИ УРФУ",
-        "GitHub": "https://github.com/SergeiKachilov"
-    }
+winCombinations = {
+    "Камень": "Ножницы",
+    "Ножницы": "Бумага",
+    "Бумага": "Камень"
+}
 
-@app.get("/rnd")
-def Rnd(min:int = Query(default=1), max:int=Query(default=100)):
-    return {"rnd": random.randint(min, max)}
+@app.post("/rps")
+def RPS(userChoice:pyd.UserChoice):
+    if userChoice.choice not in choices:
+        raise HTTPException(400, "Недопустимое значение")
+    
+    compChoice = random.choice(choices)
 
-@app.post("/t_square")
-def T_Square(a:float = Query(gt=0), b:float = Query(gt=0), c:float = Query(gt=0)):
-    if (((a + b) > c) & ((a + c) > b) & ((b + c) > a)):
-        p = a + b + c
-        s = sqrt(p/2*(p/2-a)*(p/2-b)*(p/2-c))
+    if userChoice.choice == compChoice:
         return {
-            "perimeter": p,
-            "square": s
+            "user_choice":userChoice.choice,
+            "computer_choice":compChoice,
+            "result": "Ничья"
         }
+    
+    if winCombinations[userChoice.choice] == compChoice:
+        return {
+            "user_choice":userChoice.choice,
+            "computer_choice":compChoice,
+            "result": "Победа"
+        }
+    
     return {
-        "error": "Треугольник не существует"
-    }
-
-@app.get("/convert/{from_unit}/{to_unit}/{value}")
-def Convert(from_unit:Units, to_unit:Units, value:float):
-    if from_unit in Units.celsius:
-        if to_unit in Units.fahrenheit:
-            t = value * 9 / 5 + 32
-            return {
-                "initial": str(value) + " C",
-                "result": str(t) + " F"
-                }
-        elif to_unit in Units.celsius:
-            return {
-                "initial": str(value) + " C",
-                "result": str(value) + " C"
-                }
-    elif from_unit in Units.fahrenheit:
-        if to_unit in Units.fahrenheit:
-            return {
-                "initial": str(value) + " F",
-                "result": str(value) + " F"
-                }
-        elif to_unit in Units.celsius:
-            t = (value - 32)  * 5 / 9
-            return {
-                "initial": str(value) + " F",
-                "result": str(t) + " C"
-                }
+            "user_choice":userChoice.choice,
+            "computer_choice":compChoice,
+            "result": "Поражение"
+        }
