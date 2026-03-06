@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Path, Query
+from fastapi import FastAPI, Query, HTTPException
 from enum import Enum
 import random
 from math import sqrt
@@ -25,15 +25,14 @@ def Rnd(min:int = Query(default=1), max:int=Query(default=100)):
 
 @app.post("/t_square")
 def T_Square(a:float = Query(gt=0), b:float = Query(gt=0), c:float = Query(gt=0)):
-    if (((a + b) > c) & ((a + c) > b) & ((b + c) > a)):
-        p = a + b + c
-        s = sqrt(p/2*(p/2-a)*(p/2-b)*(p/2-c))
-        return {
-            "perimeter": p,
-            "square": s
-        }
+    if not (((a + b) > c) & ((a + c) > b) & ((b + c) > a)):
+        raise HTTPException(400, "Треугольник не существует")
+
+    p = a + b + c
+    s = sqrt(p/2*(p/2-a)*(p/2-b)*(p/2-c))
     return {
-        "error": "Треугольник не существует"
+        "perimeter": p,
+        "square": s
     }
 
 @app.get("/convert/{from_unit}/{to_unit}/{value}")
