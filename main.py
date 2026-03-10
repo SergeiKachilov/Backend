@@ -1,42 +1,45 @@
 from fastapi import FastAPI, HTTPException
-from enum import Enum
+import re
 
 import random
 import pyd
 
 app = FastAPI()
 
-choices = ["Камень", "Ножницы", "Бумага"]
-
-winCombinations = {
-    "Камень": "Ножницы",
-    "Ножницы": "Бумага",
-    "Бумага": "Камень"
-}
-
-@app.post("/rps")
-def RPS(userChoice:pyd.UserChoice):
-    if userChoice.choice.capitalize() not in choices:
-        raise HTTPException(400, "Недопустимое значение")
+@app.post("/users")
+def Users(user:pyd.UserCreate):
+    emailRegex = r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,7}"
+    if not re.fullmatch(emailRegex, user.email):
+        raise HTTPException(400, "Неверный формат почты")
     
-    compChoice = random.choice(choices)
+    if not user.username.isalnum():
+        raise HTTPException(400, "Неверный формат имени пользователя")
+    
+    if not (user.password.isalnum() & (not user.password.isdigit()) & (not user.password.isalpha())):
+        raise HTTPException(400, "Неверный формат пароля")
+    
+    user.id = random.randint(0, 10000)
 
-    if userChoice.choice.capitalize() == compChoice:
-        return {
-            "user_choice":userChoice.choice.capitalize(),
-            "computer_choice":compChoice,
-            "result": "Ничья"
-        }
-    
-    if winCombinations[userChoice.choice.capitalize()] == compChoice:
-        return {
-            "user_choice":userChoice.choice.capitalize(),
-            "computer_choice":compChoice,
-            "result": "Победа"
-        }
-    
     return {
-            "user_choice":userChoice.choice.capitalize(),
-            "computer_choice":compChoice,
-            "result": "Поражение"
-        }
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "full_name": user.full_name,
+        "age": user.age
+    }
+    
+@app.post("/items")
+def Items(item:pyd.ItemCreate):
+    if len(item.tags) > 5:
+        raise HTTPException(400, "Слишком много тегов")
+    
+    if not item.in_stock:
+        item.quantity = 1
+
+    return {
+        "name": item.name,
+        "description": item.description,
+        "tags": item.tags,
+        "quantity": item.quantity, 
+        "price": item.price + item.price * item.tax / 100
+    }
