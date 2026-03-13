@@ -6,6 +6,8 @@ import pyd
 
 app = FastAPI()
 
+users = []
+
 @app.post("/users")
 def Users(user:pyd.UserCreate):
     emailRegex = r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,7}"
@@ -19,6 +21,7 @@ def Users(user:pyd.UserCreate):
         raise HTTPException(400, "Неверный формат пароля")
     
     user.id = random.randint(0, 10000)
+    users.append(user)
 
     return {
         "id": user.id,
@@ -74,3 +77,27 @@ def Filter(filters:pyd.FilterUsers):
     result.filtered_users = filtered_users
     result.filtered_count = len(result.filtered_users)
     return result
+
+@app.post("/users/{user_id}")
+def Update(info:pyd.UserUpdate, user_id:int):
+    user = pyd.UserCreate
+    flag = False
+
+    for us in users:
+        if us.id == user_id:
+            user = us
+            flag = True
+
+    emailRegex = r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,7}"
+    if (not re.fullmatch(emailRegex, info.email)) & (info.email != ""):
+        raise HTTPException(400, "Неверный формат почты")
+    
+    if not flag:
+        raise HTTPException(400, "id пользователя не найден")
+    
+    user.email = info.email if info.email != "" else user.email
+    user.full_name = info.full_name if info.full_name != "" else user.full_name
+    user.age = info.age if info.age != 17 else user.age
+    user.is_active = info.is_active if info.is_active != None else user.is_active
+
+    return user

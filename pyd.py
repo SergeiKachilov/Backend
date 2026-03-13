@@ -41,3 +41,9 @@ class ResponseFilters(BaseModel):
     filtered_count:int
     filtered_users:list[User] = Field([])
     applied_filters:Filters
+
+class UserUpdate(BaseModel):
+    email:str | None = Field("")
+    full_name:str | None = Field("")
+    age:int | None = Field(17, ge=17, le=120)
+    is_active:bool | None = Field(None)
