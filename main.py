@@ -43,3 +43,34 @@ def Items(item:pyd.ItemCreate):
         "quantity": item.quantity, 
         "price": item.price + item.price * item.tax / 100
     }
+
+@app.post("/filter-users", response_model=pyd.ResponseFilters)
+def Filter(filters:pyd.FilterUsers):
+    if (filters.filters.min_age != None) & (filters.filters.max_age != None) & (filters.filters.max_age < filters.filters.min_age):
+        raise HTTPException(400, "Мин. возраст больше максимального")
+    
+    result = pyd.ResponseFilters
+    result.total_input = len(filters.users)
+    result.applied_filters = filters.filters
+    filtered_users = []
+
+    for user in filters.users:
+        if (filters.filters.min_age > user.age):
+            continue
+
+        if (filters.filters.max_age < user.age):
+            continue
+
+        if (filters.filters.is_active == None):
+            filtered_users.append(user)
+            continue
+
+        if (filters.filters.is_active != user.active):
+            continue
+
+        filtered_users.append(user)
+
+    
+    result.filtered_users = filtered_users
+    result.filtered_count = len(result.filtered_users)
+    return result

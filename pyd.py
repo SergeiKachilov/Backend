@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from typing import Optional
 
 class UserChoice(BaseModel):
     choice:str = Field("Камень")
@@ -20,3 +21,23 @@ class ItemCreate(BaseModel):
     tags:list[str] | None
     in_stock:bool = Field(True)
     quantity:int | None = Field(example=1, ge=0, le=1000)
+
+class User(BaseModel):
+    name:str = Field(example="Анна")
+    age:int = Field(example=25, ge=0, le=150)
+    active:bool = Field(example=True)
+
+class Filters(BaseModel):
+    min_age:int | None = Field(0,example=None, ge=0, le=150)
+    max_age:int | None = Field(150, ge=0, le=150)
+    is_active:bool | None = Field(None, example=True)
+
+class FilterUsers(BaseModel):
+    users:list[User]
+    filters:Filters
+
+class ResponseFilters(BaseModel):
+    total_input:int
+    filtered_count:int
+    filtered_users:list[User] = Field([])
+    applied_filters:Filters
