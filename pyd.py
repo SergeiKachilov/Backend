@@ -13,6 +13,13 @@ class UserCreate(BaseModel):
     age:int | None = Field(None, ge=18, le=120)
     is_active:bool = Field(True)
 
+class ResponseUser(BaseModel):
+    id:int
+    username:str
+    email:str
+    full_name:str | None
+    age:int | None
+
 class ItemCreate(BaseModel):
     name:str = Field(min_length=3, max_length=100)
     description:str | None = Field(max_length=1000)
@@ -21,6 +28,13 @@ class ItemCreate(BaseModel):
     tags:list[str] | None
     in_stock:bool = Field(True)
     quantity:int | None = Field(example=1, ge=0, le=1000)
+
+class ResponseItem(BaseModel):
+    name:str
+    description:str | None
+    tags:list[str]
+    quantity:int | None
+    price:float
 
 class User(BaseModel):
     name:str = Field(example="Анна")
@@ -45,5 +59,5 @@ class ResponseFilters(BaseModel):
 class UserUpdate(BaseModel):
     email:str | None = Field("")
     full_name:str | None = Field("")
-    age:int | None = Field(17, ge=17, le=120)
+    age:int | None = Field(0, le=120)
     is_active:bool | None = Field(None)

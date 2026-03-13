@@ -8,7 +8,7 @@ app = FastAPI()
 
 users = []
 
-@app.post("/users")
+@app.post("/users", response_model=pyd.ResponseUser)
 def Users(user:pyd.UserCreate):
     emailRegex = r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,7}"
     if not re.fullmatch(emailRegex, user.email):
@@ -20,7 +20,17 @@ def Users(user:pyd.UserCreate):
     if not (user.password.isalnum() & (not user.password.isdigit()) & (not user.password.isalpha())):
         raise HTTPException(400, "Неверный формат пароля")
     
+    ids = []
+
+    for userItem in users:
+        ids.append(userItem.id)
+    
     user.id = random.randint(0, 10000)
+
+    while user.id in ids:
+        user.id = random.randint(0, 10000)
+
+    ids.append(user.id)
     users.append(user)
 
     return {
@@ -31,7 +41,7 @@ def Users(user:pyd.UserCreate):
         "age": user.age
     }
     
-@app.post("/items")
+@app.post("/items", response_model=pyd.ResponseItem)
 def Items(item:pyd.ItemCreate):
     if len(item.tags) > 5:
         raise HTTPException(400, "Слишком много тегов")
@@ -78,26 +88,30 @@ def Filter(filters:pyd.FilterUsers):
     result.filtered_count = len(result.filtered_users)
     return result
 
-@app.post("/users/{user_id}")
+@app.post("/users/{user_id}", response_model=pyd.ResponseUser)
 def Update(info:pyd.UserUpdate, user_id:int):
     user = pyd.UserCreate
+    
+    if (info.age > 0) & (info.age < 18):
+        raise HTTPException(400, "Возраст меньше 18")
+    
     flag = False
-
     for us in users:
         if us.id == user_id:
             user = us
             flag = True
 
+    if not flag:
+        raise HTTPException(400, "id пользователя не найден")
+    
     emailRegex = r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,7}"
     if (not re.fullmatch(emailRegex, info.email)) & (info.email != ""):
         raise HTTPException(400, "Неверный формат почты")
     
-    if not flag:
-        raise HTTPException(400, "id пользователя не найден")
     
     user.email = info.email if info.email != "" else user.email
     user.full_name = info.full_name if info.full_name != "" else user.full_name
-    user.age = info.age if info.age != 17 else user.age
+    user.age = info.age if info.age != 0 else user.age
     user.is_active = info.is_active if info.is_active != None else user.is_active
 
     return user
