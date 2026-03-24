@@ -1,103 +1,68 @@
-from fastapi import FastAPI, HTTPException
-import re
+from fastapi import FastAPI
+from classes import CreateProduct
+from typing import Annotated
+from models import *
+from db import create_db_and_tables, SessionDep
 
-import random
-import pyd
+from fastapi import FastAPI, HTTPException, Query
+from sqlmodel import select
 
 app = FastAPI()
 
-users = []
 
-@app.post("/users")
-def Users(user:pyd.UserCreate):
-    emailRegex = r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,7}"
-    if not re.fullmatch(emailRegex, user.email):
-        raise HTTPException(400, "Неверный формат почты")
-    
-    if not user.username.isalnum():
-        raise HTTPException(400, "Неверный формат имени пользователя")
-    
-    if not (user.password.isalnum() & (not user.password.isdigit()) & (not user.password.isalpha())):
-        raise HTTPException(400, "Неверный формат пароля")
-    
-    user.id = random.randint(0, 10000)
-    users.append(user)
+count = 0
+data = []
 
-    return {
-        "id": user.id,
-        "username": user.username,
-        "email": user.email,
-        "full_name": user.full_name,
-        "age": user.age
-    }
-    
-@app.post("/items")
-def Items(item:pyd.ItemCreate):
-    if len(item.tags) > 5:
-        raise HTTPException(400, "Слишком много тегов")
-    
-    if not item.in_stock:
-        item.quantity = 1
 
-    return {
-        "name": item.name,
-        "description": item.description,
-        "tags": item.tags,
-        "quantity": item.quantity, 
-        "price": item.price + item.price * item.tax / 100
-    }
+@app.get("/main")
+def effg():
+    global count
+    count += 1
+    return {"hello": count}
 
-@app.post("/filter-users", response_model=pyd.ResponseFilters)
-def Filter(filters:pyd.FilterUsers):
-    if (filters.filters.min_age != None) & (filters.filters.max_age != None) & (filters.filters.max_age < filters.filters.min_age):
-        raise HTTPException(400, "Мин. возраст больше максимального")
-    
-    result = pyd.ResponseFilters
-    result.total_input = len(filters.users)
-    result.applied_filters = filters.filters
-    filtered_users = []
 
-    for user in filters.users:
-        if (filters.filters.min_age > user.age):
-            continue
+@app.post("/addproduct")
+def add_product(product: CreateProduct):
+    data.append(product)
+    return data
 
-        if (filters.filters.max_age < user.age):
-            continue
 
-        if (filters.filters.is_active == None):
-            filtered_users.append(user)
-            continue
+@app.on_event("startup")
+def on_startup():
+    create_db_and_tables()
 
-        if (filters.filters.is_active != user.active):
-            continue
 
-        filtered_users.append(user)
+@app.post("/heroes/")
+def create_hero(hero: Hero, session: SessionDep) -> Hero:
+    session.add(hero)
+    session.commit()
+    session.refresh(hero)
+    return hero
 
-    
-    result.filtered_users = filtered_users
-    result.filtered_count = len(result.filtered_users)
-    return result
 
-@app.post("/users/{user_id}")
-def Update(info:pyd.UserUpdate, user_id:int):
-    user = pyd.UserCreate
-    flag = False
+@app.get("/heroes/")
+def read_heroes(
+    session: SessionDep,
+    offset: int = 0,
+    limit: Annotated[int, Query(le=100)] = 100,
+) -> list[Hero]:
+    heroes = session.exec(select(Hero).offset(offset).limit(limit)).all()
+    return heroes
 
-    for us in users:
-        if us.id == user_id:
-            user = us
-            flag = True
 
-    emailRegex = r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,7}"
-    if (not re.fullmatch(emailRegex, info.email)) & (info.email != ""):
-        raise HTTPException(400, "Неверный формат почты")
-    
-    if not flag:
-        raise HTTPException(400, "id пользователя не найден")
-    
-    user.email = info.email if info.email != "" else user.email
-    user.full_name = info.full_name if info.full_name != "" else user.full_name
-    user.age = info.age if info.age != 17 else user.age
-    user.is_active = info.is_active if info.is_active != None else user.is_active
+@app.get("/heroes/{hero_id}")
+def read_hero(hero_id: int, session: SessionDep) -> Hero:
+    hero = session.get(Hero, hero_id)
+    if not hero:
+        raise HTTPException(status_code=404, detail="Hero not found")
+    return hero
 
-    return user
+
+@app.delete("/heroes/{hero_id}")
+def delete_hero(hero_id: int, session: SessionDep):
+    hero = session.get(Hero, hero_id)
+    if not hero:
+        raise HTTPException(status_code=404, detail="Hero not found")
+    session.delete(hero)
+    session.commit()
+    return {"ok": True}
