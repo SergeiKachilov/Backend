@@ -58,10 +58,41 @@ def GetProduct(product_id: int, session: SessionDep) -> Product:
         raise HTTPException(status_code=404, detail="product not found")
     return product
 
-@app.post("/add_product/")
+@app.post("/add_product")
 def AddProduct(product: Product, session: SessionDep) -> Product:
     session.add(product)
     session.commit()
     session.refresh(product)
     return product
 
+@app.delete("/delete_product")
+def DeleteProduct(product_id: int, session: SessionDep):
+    product = session.get(Product, product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    session.delete(product)
+    session.commit()
+    return {"ok": True}
+
+@app.patch("/update_product")
+def UpdateProduct(product: UpdateProduct, session: SessionDep):
+    old_product = session.get(Product, product.id)
+    if not old_product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    if product.name != None:
+        old_product.name = product.name
+
+    if product.description != None:
+        old_product.description = product.description
+
+    if product.price != None:
+        old_product.price = product.price
+
+    if product.category_id != None:
+        old_product.category_id = product.category_id
+    
+    session.add(old_product)
+    session.commit()
+    session.refresh(old_product)
+    return {"ok": True}
