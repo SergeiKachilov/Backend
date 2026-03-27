@@ -14,55 +14,54 @@ count = 0
 data = []
 
 
-@app.get("/main")
-def effg():
-    global count
-    count += 1
-    return {"hello": count}
+# @app.get("/main")
+# def effg():
+#     global count
+#     count += 1
+#     return {"hello": count}
 
 
-@app.post("/addproduct")
-def add_product(product: CreateProduct):
-    data.append(product)
-    return data
+# @app.post("/addproduct")
+# def add_product(product: CreateProduct):
+#     data.append(product)
+#     return data
 
 
-@app.on_event("startup")
-def on_startup():
-    create_db_and_tables()
+# @app.on_event("startup")
+# def on_startup():
+#     create_db_and_tables()
 
 
-@app.post("/heroes/")
-def create_hero(hero: Hero, session: SessionDep) -> Hero:
-    session.add(hero)
-    session.commit()
-    session.refresh(hero)
-    return hero
 
+# @app.delete("/heroes/{hero_id}")
+# def delete_hero(hero_id: int, session: SessionDep):
+#     hero = session.get(Hero, hero_id)
+#     if not hero:
+#         raise HTTPException(status_code=404, detail="Hero not found")
+#     session.delete(hero)
+#     session.commit()
+#     return {"ok": True}
 
-@app.get("/heroes/")
-def read_heroes(
+@app.get("/product")
+def GetProducts(
     session: SessionDep,
     offset: int = 0,
     limit: Annotated[int, Query(le=100)] = 100,
-) -> list[Hero]:
-    heroes = session.exec(select(Hero).offset(offset).limit(limit)).all()
+) -> list[Product]:
+    heroes = session.exec(select(Product).offset(offset).limit(limit)).all()
     return heroes
 
+@app.get("/product/{product_id}")
+def GetProduct(product_id: int, session: SessionDep) -> Product:
+    product = session.get(Product, product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="product not found")
+    return product
 
-@app.get("/heroes/{hero_id}")
-def read_hero(hero_id: int, session: SessionDep) -> Hero:
-    hero = session.get(Hero, hero_id)
-    if not hero:
-        raise HTTPException(status_code=404, detail="Hero not found")
-    return hero
-
-
-@app.delete("/heroes/{hero_id}")
-def delete_hero(hero_id: int, session: SessionDep):
-    hero = session.get(Hero, hero_id)
-    if not hero:
-        raise HTTPException(status_code=404, detail="Hero not found")
-    session.delete(hero)
+@app.post("/add_product/")
+def AddProduct(product: Product, session: SessionDep) -> Product:
+    session.add(product)
     session.commit()
-    return {"ok": True}
+    session.refresh(product)
+    return product
+
