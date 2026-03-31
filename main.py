@@ -96,3 +96,52 @@ def UpdateProduct(product: UpdateProduct, session: SessionDep):
     session.commit()
     session.refresh(old_product)
     return {"ok": True}
+
+@app.get("/Category")
+def GetCategories(
+    session: SessionDep,
+    offset: int = 0,
+    limit: Annotated[int, Query(le=100)] = 100,
+) -> list[Category]:
+    categories = session.exec(select(Category).offset(offset).limit(limit)).all()
+    return categories
+
+@app.get("/category/{category_id}")
+def GetCategory(category_id: int, session: SessionDep) -> Category:
+    category = session.get(Category, category_id)
+    if not category:
+        raise HTTPException(status_code=404, detail="category not found")
+    return category
+
+@app.post("/add_category")
+def AddCategory(category: Category, session: SessionDep) -> Category:
+    # categories = select(Category).where(Category.name == category.name)
+    # result = session.exec(categories)
+    # if result:
+    #     raise HTTPException(400, "category is already exist")
+    session.commit()
+    session.refresh(category)
+    return category
+
+@app.delete("/delete_category")
+def DeleteCategory(category_id: int, session: SessionDep):
+    category = session.get(Category, category_id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    session.delete(category)
+    session.commit()
+    return {"ok": True}
+
+@app.patch("/update_category")
+def UpdateCategory(category: UpdateCategory, session: SessionDep):
+    old_category = session.get(Category, category.id)
+    if not old_category:
+        raise HTTPException(status_code=404, detail="Category not found")
+
+    if category.name != None:
+        old_category.name = category.name
+    
+    session.add(old_category)
+    session.commit()
+    session.refresh(old_category)
+    return {"ok": True}
