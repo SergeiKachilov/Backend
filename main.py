@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from classes import CreateProduct
+# from classes import CreateProduct
 from typing import Annotated
 from models import *
 from db import create_db_and_tables, SessionDep
@@ -13,36 +13,7 @@ app = FastAPI()
 count = 0
 data = []
 
-
-# @app.get("/main")
-# def effg():
-#     global count
-#     count += 1
-#     return {"hello": count}
-
-
-# @app.post("/addproduct")
-# def add_product(product: CreateProduct):
-#     data.append(product)
-#     return data
-
-
-# @app.on_event("startup")
-# def on_startup():
-#     create_db_and_tables()
-
-
-
-# @app.delete("/heroes/{hero_id}")
-# def delete_hero(hero_id: int, session: SessionDep):
-#     hero = session.get(Hero, hero_id)
-#     if not hero:
-#         raise HTTPException(status_code=404, detail="Hero not found")
-#     session.delete(hero)
-#     session.commit()
-#     return {"ok": True}
-
-@app.get("/product")
+@app.get("/product", response_model=list[Product])
 def GetProducts(
     session: SessionDep,
     offset: int = 0,
@@ -51,21 +22,22 @@ def GetProducts(
     heroes = session.exec(select(Product).offset(offset).limit(limit)).all()
     return heroes
 
-@app.get("/product/{product_id}")
+@app.get("/product/{product_id}", response_model=Product)
 def GetProduct(product_id: int, session: SessionDep) -> Product:
     product = session.get(Product, product_id)
     if not product:
         raise HTTPException(status_code=404, detail="product not found")
     return product
 
-@app.post("/add_product")
-def AddProduct(product: Product, session: SessionDep) -> Product:
-    session.add(product)
+@app.post("/product", response_model=CreateProduct)
+def AddProduct(product: CreateProduct, session: SessionDep):
+    new_product = Product(name= product.name, description=product.description, price=product.price, category_id=product.category_id)
+    session.add(new_product)
     session.commit()
-    session.refresh(product)
+    # session.refresh(product)
     return product
 
-@app.delete("/delete_product")
+@app.delete("/product")
 def DeleteProduct(product_id: int, session: SessionDep):
     product = session.get(Product, product_id)
     if not product:
@@ -74,7 +46,7 @@ def DeleteProduct(product_id: int, session: SessionDep):
     session.commit()
     return {"ok": True}
 
-@app.patch("/update_product")
+@app.patch("/product", response_model=CreateProduct)
 def UpdateProduct(product: UpdateProduct, session: SessionDep):
     old_product = session.get(Product, product.id)
     if not old_product:
@@ -95,9 +67,9 @@ def UpdateProduct(product: UpdateProduct, session: SessionDep):
     session.add(old_product)
     session.commit()
     session.refresh(old_product)
-    return {"ok": True}
+    return old_product
 
-@app.get("/Category")
+@app.get("/category", response_model=list[Category])
 def GetCategories(
     session: SessionDep,
     offset: int = 0,
@@ -106,24 +78,26 @@ def GetCategories(
     categories = session.exec(select(Category).offset(offset).limit(limit)).all()
     return categories
 
-@app.get("/category/{category_id}")
+@app.get("/category/{category_id}", response_model=Category)
 def GetCategory(category_id: int, session: SessionDep) -> Category:
     category = session.get(Category, category_id)
     if not category:
         raise HTTPException(status_code=404, detail="category not found")
     return category
 
-@app.post("/add_category")
-def AddCategory(category: Category, session: SessionDep) -> Category:
+@app.post("/category", response_model=CreateCategory)
+def AddCategory(category: CreateCategory, session: SessionDep):
     # categories = select(Category).where(Category.name == category.name)
     # result = session.exec(categories)
     # if result:
     #     raise HTTPException(400, "category is already exist")
+    new_category = Category(name=category.name)
+    session.add(new_category)
     session.commit()
-    session.refresh(category)
+    # session.refresh(category)
     return category
 
-@app.delete("/delete_category")
+@app.delete("/category")
 def DeleteCategory(category_id: int, session: SessionDep):
     category = session.get(Category, category_id)
     if not category:
@@ -132,7 +106,7 @@ def DeleteCategory(category_id: int, session: SessionDep):
     session.commit()
     return {"ok": True}
 
-@app.patch("/update_category")
+@app.patch("/category", response_model=CreateCategory)
 def UpdateCategory(category: UpdateCategory, session: SessionDep):
     old_category = session.get(Category, category.id)
     if not old_category:
@@ -144,4 +118,4 @@ def UpdateCategory(category: UpdateCategory, session: SessionDep):
     session.add(old_category)
     session.commit()
     session.refresh(old_category)
-    return {"ok": True}
+    return old_category

@@ -11,8 +11,8 @@ from pydantic import Field as PydField
 
 class Category(SQLModel, table=True):
     id: int | None = SqlField(default=None, primary_key=True)
-    name: str = SqlField(unique=True)
-    products: list["Product"] = Relationship(back_populates="category")
+    name: str
+    products: list["Product"] = Relationship(back_populates="category", cascade_delete=True)
 
 class Product(SQLModel, table=True):
     id: int | None = SqlField(default=None, primary_key=True)
@@ -21,6 +21,15 @@ class Product(SQLModel, table=True):
     price: float
     category_id: int = SqlField(foreign_key="category.id")
     category: Category = Relationship(back_populates="products")
+
+class CreateProduct(BaseModel):
+    name: str
+    description: str | None = PydField(default=None)
+    price: float
+    category_id: int
+
+class CreateCategory(BaseModel):
+    name: str
 
 class UpdateCategory(BaseModel):
     id: int = PydField(description="id изменяемой категории")
