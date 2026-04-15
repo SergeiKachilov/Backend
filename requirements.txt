@@ -1,2 +1,1 @@
-fastapi[standart]
-sqlmodel
+Django
