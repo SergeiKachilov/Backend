@@ -12,7 +12,24 @@ from pydantic import Field as PydField
 class User(SQLModel, table=True):
     id: int | None = SqlField(default=None, primary_key=True)
     login: str
-    password: str
+    password: str = SqlField(min_length=8)
+    Tasks: list["Task"] = Relationship(back_populates="user")
+
+class Priority(SQLModel, table=True):
+    id: int | None = SqlField(default=None, primary_key=True)
+    name: str
+    Tasks: list["Task"] = Relationship(back_populates="priority")
+
+class Status(SQLModel, table=True):
+    id: int | None = SqlField(default=None, primary_key=True)
+    name: str
+    Tasks: list["Task"] = Relationship(back_populates="status")
+
+class Task(SQLModel, table=True):
+    id: int | None = SqlField(default=None, primary_key=True)
+    name: str
+    priority_id: int = SqlField(foreign_key="priority.id")
+    status_id: int = SqlField(foreign_key="status.id")
 
 # class Category(SQLModel, table=True):
 #     id: int | None = SqlField(default=None, primary_key=True)

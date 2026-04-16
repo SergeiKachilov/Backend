@@ -14,11 +14,11 @@ def test1(api_token=Security(api_key)):
         raise HTTPException(403, "Неверный токен")
     return {"secret": "ВАЖНО"}
 
-@app.get("/test1")
+@app.get("/test")
 def test2(session: SessionDep, creds:HTTPBasicCredentials=Depends(sec)):
-
     user = select(User).where(User.login == creds.username).where(User.password==creds.password)
     result = session.exec(user).first()
     if not result:
         raise HTTPException(403, "Неверный логин или пароль")
     return {"secret": "ВАЖНО"}
+
