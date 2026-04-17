@@ -1,1 +1,4 @@
-Django
+fastapi[standard]
+pydantic
+sqlmodel
+bcrypt

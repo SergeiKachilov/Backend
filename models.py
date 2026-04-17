@@ -42,7 +42,25 @@ class RegUser(BaseModel):
     login: str
     password: str = PydField(min_length=8, pattern=r"[a-zA-Z]+[1-9]+|[1-9]+[a-zA-Z]+")
 
+class NewTask(BaseModel):
+    name: str
+    description: str | None = PydField(default=None)
+    deadline: str | None = PydField(default=None, pattern=r"^[0-9]{2}\.[0-9]{2}\.[0-9]{4}$")
+    priority: str | None = PydField(default="Low", description="Possible values: Low (default), Medium, High")
 
+class EditTask(BaseModel):
+    id: int
+    name: str | None
+    description: str | None
+    deadline: str | None
+    priority: str | None
+
+class ResponseTask(BaseModel):
+    name: str
+    description: str | None = PydField(default="No description")
+    deadline: str | None = PydField(default="No deadline")
+    priority: str
+    status: str
 
 # class Category(SQLModel, table=True):
 #     id: int | None = SqlField(default=None, primary_key=True)
