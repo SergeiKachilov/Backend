@@ -11,25 +11,38 @@ from pydantic import Field as PydField
 
 class User(SQLModel, table=True):
     id: int | None = SqlField(default=None, primary_key=True)
-    login: str
-    password: str = SqlField(min_length=8)
-    Tasks: list["Task"] = Relationship(back_populates="user")
+    login: str = SqlField(unique=True)
+    password: str
+    tasks: list["Task"] = Relationship(back_populates="user", cascade_delete=True)
 
 class Priority(SQLModel, table=True):
     id: int | None = SqlField(default=None, primary_key=True)
-    name: str
-    Tasks: list["Task"] = Relationship(back_populates="priority")
+    name: str = SqlField(unique=True)
+    tasks: list["Task"] = Relationship(back_populates="priority", cascade_delete=True)
 
 class Status(SQLModel, table=True):
     id: int | None = SqlField(default=None, primary_key=True)
-    name: str
-    Tasks: list["Task"] = Relationship(back_populates="status")
+    name: str = SqlField(unique=True)
+    tasks: list["Task"] = Relationship(back_populates="status", cascade_delete=True)
 
 class Task(SQLModel, table=True):
     id: int | None = SqlField(default=None, primary_key=True)
     name: str
+    description: str | None = SqlField(default=None)
+    deadline: int | None = SqlField(default=None)
     priority_id: int = SqlField(foreign_key="priority.id")
     status_id: int = SqlField(foreign_key="status.id")
+    user_id: int = SqlField(foreign_key="user.id")
+
+    priority: Priority = Relationship(back_populates="tasks")
+    status: Status = Relationship(back_populates="tasks")
+    user: User = Relationship(back_populates="tasks")
+
+class RegUser(BaseModel):
+    login: str
+    password: str = PydField(min_length=8, pattern=r"[a-zA-Z]+[1-9]+|[1-9]+[a-zA-Z]+")
+
+
 
 # class Category(SQLModel, table=True):
 #     id: int | None = SqlField(default=None, primary_key=True)
