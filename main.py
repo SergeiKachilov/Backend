@@ -9,7 +9,6 @@ import bcrypt
 import datetime
 
 app = FastAPI()
-api_key = APIKeyHeader(name="x-api-key")
 sec = HTTPBasic()
 
 
@@ -28,24 +27,6 @@ def CheckUser(login: str, password: str, session: SessionDep):
         return False
 
     return True
-
-
-@app.get("/test")
-def test1(api_token=Security(api_key)):
-    if api_token != "abc123":
-        raise HTTPException(403, "Неверный токен")
-    return {"secret": "ВАЖНО"}
-
-
-@app.get("/test")
-def test2(session: SessionDep, creds: HTTPBasicCredentials = Depends(sec)):
-    user = select(User).where(
-        User.login == creds.username, User.password == creds.password
-    )
-    result = session.exec(user).first()
-    if not result:
-        raise HTTPException(403, "Неверный логин или пароль")
-    return {"secret": "ВАЖНО"}
 
 
 @app.post("/register")
@@ -88,7 +69,8 @@ def GetTasks(
     if deadline_sort:
         cmnd = cmnd.order_by(Task.deadline)
 
-    cmnd = cmnd.offset(5 * (page - 1)).limit(5)
+    el_on_pages = 3
+    cmnd = cmnd.offset(el_on_pages * (page - 1)).limit(el_on_pages)
 
     tasks = session.exec(cmnd).all()
     result = []
@@ -119,16 +101,18 @@ def GetTask(id: int, session: SessionDep, creds: HTTPBasicCredentials = Depends(
         raise HTTPException(400, "Неверный логин или пароль!")
 
     user = session.exec(select(User).where(User.login == creds.username)).first()
+    check_task = session.exec(select(Task).where(Task.id == id, Task.user_id == user.id)).first()
 
+    if check_task is None:
+        raise HTTPException(404, "Задача не найдена")
+    
     tasks = session.exec(
         select(Task, Priority, Status)
         .where(Task.id == id, Task.user_id == user.id)
         .join(Priority)
         .join(Status)
-    ).first()
+    ).all()
 
-    if tasks is None:
-        raise HTTPException(400, "Задача не найдена")
 
     result = ResponseTask
 
@@ -143,3 +127,79 @@ def GetTask(id: int, session: SessionDep, creds: HTTPBasicCredentials = Depends(
         result.status = status.name
 
     return result
+
+@app.post("/tasks")
+def CreateTask(task: NewTask, session: SessionDep, creds: HTTPBasicCredentials=Depends(sec)):
+    if not CheckUser(creds.username, creds.password, session):
+        raise HTTPException(400, "Неверный логин или пароль!")
+    
+    priority = session.exec(select(Priority).where(Priority.name == task.priority.capitalize())).first()
+    if priority is None:
+        raise HTTPException(400, "Приоритет может быть только Low, Medium или High")
+    
+    status = session.exec(select(Status).where(Status.name == "In Progress")).first()
+    user = session.exec(select(User).where(User.login == creds.username)).first()
+
+    session.add(Task(name=task.name,
+                     description=task.description,
+                     deadline=datetime.datetime.strptime(task.deadline, "%d.%m.%Y").timestamp(),
+                     priority_id=priority.id,
+                     status_id=status.id,
+                     user_id=user.id))
+    
+    session.commit()
+    
+    return {"message": "success"}
+
+@app.patch("/tasks")
+def EditTask(task: EditTask, session: SessionDep, creds: HTTPBasicCredentials=Depends(sec)):
+    if not CheckUser(creds.username, creds.password, session):
+        raise HTTPException(400, "Неверный логин или пароль!")
+    
+    user = session.exec(select(User).where(User.login == creds.username)).first()
+    old_task = session.exec(select(Task).where(Task.id == task.id, Task.user_id == user.id)).first()
+
+    if old_task is None:
+        raise HTTPException(404, "Задача не найдена")
+
+    if task.status is not None:
+        status = session.exec(select(Status).where(Status.name == task.status.capitalize())).first()
+        if status is None:
+            raise HTTPException(400, "Статус может быть только In Progress, Cancelled или Completed")
+        old_task.status_id = status.id
+
+    if task.priority is not None:
+        priority = session.exec(select(Priority).where(Priority.name == task.priority.capitalize())).first()
+        if priority is None:
+            raise HTTPException(400, "Приоритет может быть только Low, Medium или High")
+        old_task.priority_id = priority.id
+    
+    if task.deadline is not None:
+        old_task.deadline = datetime.datetime.strptime(task.deadline, "%d.%m.%Y").timestamp()
+    
+    if task.description is not None:
+        old_task.description = task.description
+    
+    if task.name is not None:
+        old_task.name = task.name
+
+    session.add(old_task)
+    session.commit()
+
+    return {"message": "success"}
+
+@app.delete("/tasks")
+def DeleteTask(id: int, session: SessionDep, creds: HTTPBasicCredentials=Depends(sec)):
+    if not CheckUser(creds.username, creds.password, session):
+        raise HTTPException(400, "Неверный логин или пароль!")
+    
+    user = session.exec(select(User).where(User.login == creds.username)).first()
+    task = session.exec(select(Task).where(Task.id == id, Task.user_id == user.id)).first()
+
+    if task is None:
+        raise HTTPException(404, "Задача не найдена")
+    
+    session.delete(task)
+    session.commit()
+
+    return {"message": "success"}

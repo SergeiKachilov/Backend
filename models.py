@@ -50,16 +50,17 @@ class NewTask(BaseModel):
 
 class EditTask(BaseModel):
     id: int
-    name: str | None
-    description: str | None
-    deadline: str | None
-    priority: str | None
+    name: str | None = PydField(default=None)
+    description: str | None = PydField(default=None)
+    deadline: str | None = PydField(default=None, pattern=r"^[0-9]{2}\.[0-9]{2}\.[0-9]{4}$")
+    priority: str | None = PydField(default=None)
+    status: str | None = PydField(default=None)
 
 class ResponseTask(BaseModel):
     id: int
     name: str
-    description: str | None = PydField(default="No description")
-    deadline: str | None = PydField(default="No deadline")
+    description: str | None
+    deadline: str | None
     priority: str
     status: str
 
