@@ -56,6 +56,7 @@ class EditTask(BaseModel):
     priority: str | None
 
 class ResponseTask(BaseModel):
+    id: int
     name: str
     description: str | None = PydField(default="No description")
     deadline: str | None = PydField(default="No deadline")
