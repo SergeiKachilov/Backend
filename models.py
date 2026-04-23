@@ -2,6 +2,8 @@ from sqlmodel import SQLModel, Relationship
 from sqlmodel import Field as SqlField
 from pydantic import BaseModel
 from pydantic import Field as PydField
+from datetime import datetime
+from typing import List
 
 # class Hero(SQLModel, table=True):
 #     id: int | None = Field(default=None, primary_key=True)
@@ -11,31 +13,25 @@ from pydantic import Field as PydField
 
 class User(SQLModel, table=True):
     id: int | None = SqlField(default=None, primary_key=True)
-    login: str = SqlField(unique=True)
-    password: str
-    tasks: list["Task"] = Relationship(back_populates="user", cascade_delete=True)
+    login: str = SqlField(unique=True, max_length=32)
+    password: str = SqlField(max_length=16, min_length=8)
+    
+    tasks: List["Task"] = Relationship(back_populates="user", cascade_delete=True)
 
-class Priority(SQLModel, table=True):
-    id: int | None = SqlField(default=None, primary_key=True)
-    name: str = SqlField(unique=True)
-    tasks: list["Task"] = Relationship(back_populates="priority", cascade_delete=True)
 
 class Status(SQLModel, table=True):
     id: int | None = SqlField(default=None, primary_key=True)
     name: str = SqlField(unique=True)
-    tasks: list["Task"] = Relationship(back_populates="status", cascade_delete=True)
 
 class Task(SQLModel, table=True):
     id: int | None = SqlField(default=None, primary_key=True)
     name: str
     description: str | None = SqlField(default=None)
-    deadline: int | None = SqlField(default=None)
-    priority_id: int = SqlField(foreign_key="priority.id")
+    deadline: datetime | None = SqlField(default=None)
     status_id: int = SqlField(foreign_key="status.id")
     user_id: int = SqlField(foreign_key="user.id")
 
-    priority: Priority = Relationship(back_populates="tasks")
-    status: Status = Relationship(back_populates="tasks")
+    status: Status = Relationship()
     user: User = Relationship(back_populates="tasks")
 
 class RegUser(BaseModel):
