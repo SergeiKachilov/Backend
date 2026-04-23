@@ -2,3 +2,4 @@ fastapi[standard]
 pydantic
 sqlmodel
 bcrypt
+python-multipart
