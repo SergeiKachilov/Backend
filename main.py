@@ -8,11 +8,12 @@ from enum import Enum
 import bcrypt
 import datetime
 
+
 app = FastAPI()
 sec = HTTPBasic()
 
 
-class Filter(str, Enum):
+class Filter(str, Enum):    
     in_progress = "In Progress"
     completed = "Completed"
     cancelled = "Cancelled"
