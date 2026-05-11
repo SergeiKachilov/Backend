@@ -40,7 +40,7 @@ class Task(SQLModel, table=True):
 
 class RegUser(BaseModel):
     login: str
-    password: str = PydField(min_length=8, pattern=r"[a-zA-Z]+[1-9]+|[1-9]+[a-zA-Z]+")
+    password: str = PydField(min_length=8, pattern=r"[a-zA-Z]+[0-9]+|[0-9]+[a-zA-Z]+")
 
 class NewTask(BaseModel):
     name: str
