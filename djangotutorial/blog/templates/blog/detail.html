@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="blog">
+        <div class="blog__header">
+            <p class="blog__name">{{blog.blog_name}}</p>
+            <p class="blog__date">{{blog.pub_date}}</p>
+        </div>
+        <p class="blog__text">{{blog.blog_text}}</p>
+    </div>
+    <form class="new-comment" method="post">
+        {% csrf_token %}
+        <input type="text" class="new-comment__input" name="comment_text" required>
+        <button class="new-comment__btn" type="submit">Опубликовать</button>
+    </form>
+    <div class="comments">
+        {% if comments %}
+            {% for comment in comments %}
+            <div class="comment">
+                <p class="comment__username">Аноним</p>
+                <p class="comment__text">{{comment.comment_text}}</p>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</body>
+</html>

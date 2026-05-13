@@ -1,0 +1,22 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <link rel="stylesheet" href={% static 'css/index.css' %}>
+    </head>
+    <body>
+        {% if latest_blogs %}
+            <div class="blogs">
+                {% for blog in latest_blogs %}
+                    <a href="/blog/{{blog.id}}" class="blogs__item">
+                        <p class="blogs__name">{{blog.blog_name|truncatechars:60}}</p>
+                        <p clas="blogs__text">{{blog.blog_text|truncatechars:100}}</p>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No blogs are available</p>
+        {% endif %}
+    </body>
+</html>

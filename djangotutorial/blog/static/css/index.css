@@ -1,0 +1,29 @@
+.body {
+    width: 100%;
+    min-width: 220px;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: black solid;
+}
+
+.blogs {
+    display: flex;
+    max-width: 100%;
+
+    padding: 10px;
+    margin: 0;
+
+    justify-content: left;
+    flex-wrap: wrap;
+
+    gap: 20px;
+}
+
+.blogs__item {
+    width: 200px;
+    min-width: 200px;
+    height: 300px;
+    border: solid black;
+}
