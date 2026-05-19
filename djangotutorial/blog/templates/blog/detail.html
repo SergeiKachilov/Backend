@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <title>Document</title>
 </head>
 <body>
-    <div class="blog">
+    <!-- <div class="blog">
         <div class="blog__header">
             <p class="blog__name">{{blog.blog_name}}</p>
             <p class="blog__date">{{blog.pub_date}}</p>
@@ -17,13 +19,61 @@
         {% csrf_token %}
         <input type="text" class="new-comment__input" name="comment_text" required>
         <button class="new-comment__btn" type="submit">Опубликовать</button>
-    </form>
-    <div class="comments">
+    </form> -->
+
+    <article class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+        <div class="card-body p-4 p-md-5">
+            <!-- Заголовок блога -->
+            <h1 class="card-title display-6 fw-bold mb-3">{{blog.blog_name}}</h1>
+            
+            <!-- Дата публикации -->
+            <div class="d-flex align-items-center text-muted mb-4">
+                <i class="bi bi-calendar3 me-2"></i>
+                <span>{{blog.pub_date}}</span>
+            </div>
+            
+            <!-- Текст блога (чистый контент) -->
+            <div class="blog-text" style="font-size: 1.05rem; line-height: 1.7;">
+                <p>{{blog.blog_text}}</p>
+            </div>
+        </div>
+    </article>
+
+    <div class="comment-form mt-4 pt-2 border-top d-flex flex-column align-items-center">
+        <h4 class="h5 fw-semibold mb-3"><i class="bi bi-pencil-square me-2"></i>Оставить комментарий</h4>
+        <form class="w-50" method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <input class="form-control" name="comment_text" placeholder="Поделитесь своим мнением или задайте вопрос..." required></input>
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary rounded-pill px-4">
+                    <i class="bi bi-send me-1"></i> Отправить
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="comments d-flex flex-column align-items-center">
         {% if comments %}
             {% for comment in comments %}
-            <div class="comment">
+            <!-- <div class="comment">
                 <p class="comment__username">Аноним</p>
                 <p class="comment__text">{{comment.comment_text}}</p>
+            </div> -->
+            <div class="d-flex border-bottom pb-3 mb-3 w-50">
+                <div class="flex-shrink-0">
+                    <div class="bg-primary bg-opacity-25 rounded-circle p-2 me-3 text-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-person-circle fs-4 text-primary"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <strong class="text-dark">Аноним</strong>
+                    </div>
+                    <p class="mb-0 text-secondary">{{comment.comment_text}}</p>
+                </div>
             </div>
             {% endfor %}
         {% endif %}

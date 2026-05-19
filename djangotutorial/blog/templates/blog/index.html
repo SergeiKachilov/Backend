@@ -4,19 +4,74 @@
 <html lang="ru">
     <head>
         <link rel="stylesheet" href={% static 'css/index.css' %}>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     </head>
     <body>
         {% if latest_blogs %}
-            <div class="blogs">
+            <div class="row g-4">
                 {% for blog in latest_blogs %}
-                    <a href="/blog/{{blog.id}}" class="blogs__item">
+                    <div class="col-12 col-sm-6 col-lg-4">
+                    <!-- <a href="/blog/{{blog.id}}" class="blogs__item">
                         <p class="blogs__name">{{blog.blog_name|truncatechars:60}}</p>
                         <p clas="blogs__text">{{blog.blog_text|truncatechars:100}}</p>
-                    </a>
+                    </a> -->
+                        <div class="card h-100 shadow-sm">
+                            <!-- <img src="https://picsum.photos/id/0/400/220" class="card-img-top" alt="Блог о программировании"> -->
+                            <div class="card-body">
+                                <!-- <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="badge bg-primary bg-opacity-25 text-primary rounded-pill"><i class="bi bi-code-slash me-1"></i> Программирование</span>
+                                    <small class="text-warning"><i class="bi bi-star-fill"></i> 4.9</small>
+                                </div> -->
+                                <h5 class="card-title fw-bold">{{blog.blog_name|truncatechars:60}}</h5>
+                                <p class="card-text text-secondary">{{blog.blog_text|truncatechars:100}}</p>
+                            </div>
+                            <div class="card-footer bg-white border-top-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <!-- <div class="d-flex align-items-center gap-2">
+                                        <img src="https://randomuser.me/api/portraits/men/32.jpg" class="rounded-circle" width="32" height="32" alt="avatar">
+                                        <small class="text-muted">Алексей С.</small>
+                                    </div> -->
+                                    <a href="/blog/{{blog.id}}" class="btn btn-sm btn-outline-primary rounded-pill">Читать →</a>
+                                </div>
+                                <small class="text-muted d-block mt-2"><i class="bi bi-calendar-week"></i> {{blog.pub_date}}</small>
+                            </div>
+                        </div>
+                    </div>
                 {% endfor %}
             </div>
         {% else %}
             <p>No blogs are available</p>
         {% endif %}
+
+        <!-- <div class="pagination">
+            <ul class="pagination">
+                {% if latest_blogs.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page=1">&laquo; first</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ latest_blogs.previous_page_number }}">previous</a></li>
+                {% endif %}
+
+                <li class="page-item">
+                    Page {{ latest_blogs.number }} of {{ latest_blogs.paginator.num_pages }}.
+                </li>
+
+                {% if latest_blogs.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ latest_blogs.next_page_number }}">next</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ latest_blogs.paginator.num_pages }}">last &raquo;</a></li>
+                {% endif %}
+            </ul>
+        </div> -->
+
+        <ul class="pagination mt-4">
+            <li class="page-item {%if not latest_blogs.has_previous%}disabled{%endif%}">
+                <a class="page-link " href="{%if latest_blogs.has_previous%}?page={{ latest_blogs.previous_page_number }}{%endif%}" tabindex="-1" aria-disabled="true">Предыдущая</a>
+            </li>
+            <!-- <li class="page-item"><a class="page-link" href="#">1</a></li> -->
+            <li class="page-item active" aria-current="page"><a class="page-link" href="#">{{latest_blogs.number}} из {{latest_blogs.paginator.num_pages}}</a></li>
+            <!-- <li class="page-item"><a class="page-link" href="#">3</a></li> -->
+            <li class="page-item">
+                <a class="page-link {%if not latest_blogs.has_next%}disabled{%endif%}" href="{%if latest_blogs.has_next%}?page={{ latest_blogs.next_page_number }}{%endif%}">Следующая</a>
+            </li>
+        </ul>
     </body>
 </html>
