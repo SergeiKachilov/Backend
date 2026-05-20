@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.views import generic
 from django.template import loader
 from django.core.paginator import Paginator
@@ -21,11 +21,15 @@ def index(request):
 
 def detail(request, blog_id):
     blog = get_object_or_404(Blog, pk=blog_id)
-    comments = Comment.objects.filter(blog=blog).order_by("-id")
-
     if request.method == "POST":
         text = request.POST.get("comment_text")
         comment = Comment(blog=blog, comment_text=text)
         comment.save()
+        return redirect("detail", blog_id= blog.id)
+
+    
+    comments = Comment.objects.filter(blog=blog).order_by("-id")
+
+   
     
     return render(request, "blog/detail.html", {"blog": blog, "comments": comments})
